@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/security
+	http://www.springframework.org/schema/security/spring-security.xsd">
+	
+	<http>
+		<intercept-url  pattern="/secure/man/**" access="hasRole('MANAGERS')" />
+		<intercept-url  pattern="/secure/dev/**" access="hasRole('DEVELOPERS')" />		
+		<form-login 
+		   login-page="/login" 
+		   login-processing-url="/appLogin"
+		   username-parameter="username"
+		   password-parameter="password"
+		   default-target-url="/secure/dev"/>
+		<logout 
+		   logout-url="/appLogout" 
+		   logout-success-url="/login"/>  
+		<access-denied-handler error-page="/accessDenied"/>
+	</http>
+
+	<beans:bean name="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder"/>
+	
+	<authentication-manager>
+          <ldap-authentication-provider
+                server-ref="ldapServer"
+                user-dn-pattern="uid={0},ou=people"
+                user-search-base="ou=people"
+                user-search-filter="uid={0}"
+                group-search-base="ou=groups"
+                group-search-filter="uniqueMember={0}">
+            <password-compare password-attribute="userPassword">
+                <password-encoder ref="passwordEncoder"/>
+            </password-compare>
+          </ldap-authentication-provider>
+	</authentication-manager>
+    
+        <ldap-server id="ldapServer" url="ldap://localhost:2389/dc=concretepage,dc=com" />
+        
+</beans:beans> 
